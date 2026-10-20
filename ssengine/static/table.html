@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Saints and Sinners Table</title>
+<style>
+/* One column "player console": status strip, six seats, your board, report, feed, compose. */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#16202b; --muted:#5b6876; --line:#d5dce3;
+  --virtue:#0f766e; --virtue-bg:#d9f0ec; --sin:#b4281e; --sin-bg:#f8dcd8; --gold:#a16207; --gold-bg:#f6e8c4;
+  --accent:#2540a8; --accent-ink:#ffffff; --focus:#2540a8;
+  --display:'Archivo',system-ui,sans-serif; --body:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f151c; --panel:#18212b; --ink:#e7edf3; --muted:#9aa8b6; --line:#2b3745;
+  --virtue:#4fd1c1; --virtue-bg:#12322f; --sin:#ff8a7d; --sin-bg:#3b1a17; --gold:#e9b949; --gold-bg:#37290d;
+  --accent:#8aa4ff; --accent-ink:#0f151c; --focus:#8aa4ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151c; --panel:#18212b; --ink:#e7edf3; --muted:#9aa8b6; --line:#2b3745;
+  --virtue:#4fd1c1; --virtue-bg:#12322f; --sin:#ff8a7d; --sin-bg:#3b1a17; --gold:#e9b949; --gold-bg:#37290d;
+  --accent:#8aa4ff; --accent-ink:#0f151c; --focus:#8aa4ff; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-block:18px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+button,select,textarea,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.top h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px}
+.vp{font:700 44px/1 var(--display);font-variant-numeric:tabular-nums}
+.themebox{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;font:500 12px var(--mono);border:1px solid var(--line);background:var(--panel)}
+.chip.v{background:var(--virtue-bg);color:var(--virtue);border-color:transparent}
+.chip.s{background:var(--sin-bg);color:var(--sin);border-color:transparent}
+.chip.g{background:var(--gold-bg);color:var(--gold);border-color:transparent;cursor:help}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.seats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.seat{border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--panel);display:flex;flex-direction:column;gap:3px;min-width:0}
+.seat.me{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.seat b{font:700 14px var(--display)}
+.seat .band{font:500 18px var(--mono);font-variant-numeric:tabular-nums}
+.seat .fam{font:400 11px var(--mono);color:var(--muted)}
+.tok{font:500 11px var(--mono);letter-spacing:.06em;color:var(--muted)}
+.tok.h{color:var(--virtue)} .tok.x{color:var(--sin)}
+ul.clean{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.rep li{padding-left:10px;border-left:3px solid var(--line)}
+.rep li.good{border-color:var(--virtue)} .rep li.bad{border-color:var(--sin)} .rep li.note{border-color:var(--gold)}
+.talk li{display:flex;gap:10px;align-items:baseline}
+.talk .who{font:700 13px var(--display);flex:0 0 34px}
+.talk .who.you{color:var(--accent)}
+.whisper{background:var(--gold-bg);border-radius:6px;padding:6px 10px}
+.notice{background:var(--gold-bg);border-radius:6px;padding:8px 12px;color:var(--ink)}
+.pre{white-space:pre-wrap;overflow-wrap:anywhere;font:400 13px/1.5 var(--mono);color:var(--muted)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 16px;font-size:13px}
+.kv span{color:var(--muted)} .kv b{font-weight:600}
+.hand{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.card{text-align:left;border:2px solid var(--line);background:var(--panel);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;cursor:pointer;min-width:0}
+.card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.card.v .k{color:var(--virtue)} .card.s .k{color:var(--sin)}
+.card .k{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.card .n{font:800 18px var(--display)}
+.card .t{font-size:13px;color:var(--muted)}
+.card .th{font:600 11px var(--mono);color:var(--gold)}
+.row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+select,textarea,input[type=text],input[type=number]{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;color:var(--ink);min-width:0}
+textarea{width:100%;resize:vertical}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 16px;font:700 14px var(--display);cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.out{background:var(--bg);border:1px dashed var(--line);border-radius:6px;padding:10px;font:400 12.5px/1.5 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}
+.hint{font-size:12.5px;color:var(--muted)}
+details summary{cursor:pointer;font:700 13px var(--display)}
+.err{color:var(--sin);font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tablewrap{overflow-x:auto}
+.win{color:var(--gold);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* The page only ever receives its own seat's VIEW from the server (see ssengine/views.py: human_view). */
+const params = new URLSearchParams(location.search);
+const GAME = params.get('game');
+const SEAT = Number(params.get('seat') || 0);
+const OFFLINE = location.protocol === 'file:';
+let VIEW = null, RULES = null, lastKey = '';
+const DEMO = /*DEMO_VIEW*/{"mode":"demo","game":"DEMO","seat":0,"round":3,"rounds":7,"stage":"talk","theme":{"virtue":"Charity","sin":"Greed","label":"Greed/Charity"},"vp":25,"seats":[{"s":0,"band":"25","token":"HALOED","fam":"LIGHT"},{"s":1,"band":"15-19","token":"HOT","fam":"SHADOW"},{"s":2,"band":"20-24","token":"HALOED","fam":"LIGHT/SHADOW"},{"s":3,"band":"15-19","token":"none","fam":"SHADOW"},{"s":4,"band":"20-24","token":"HOT","fam":"SHADOW"},{"s":5,"band":"20-24","token":"HOT","fam":"LIGHT/SHADOW"}],"board":{"given":[],"received":[],"betrayals":0,"settles":0,"pledges_kept":0,"ward":true,"streak":{"kind":"virtue","length":2},"accusation":"not yet"},"report":["You played Guidance on S2: base +2; theme +2","Net VP change this round: +12"],"public":[],"notices":[],"fates":[{"name":"saint","reward":6,"family":"LIGHT","desc":"Play a virtue in 6+ rounds AND finish top 3 on base VP."}],"feed":[{"s":1,"t":"Example public line."}],"whispers":[{"s":2,"t":"Example whisper to you."}],"pledges":[],"hand":[],"stash":null,"offer":[],"can_call":true,"final":false,"strike_first":null,"families":{"1":["SHADOW"]},"accused":false,"tallies":"","news":""}/*END_DEMO*/;
+
+const $ = (s, r = document) => r.querySelector(s);
+const el = (t, a = {}, ...k) => {
+  const e = document.createElement(t);
+  for (const [x, v] of Object.entries(a)) {
+    if (x === 'class') e.className = v;
+    else if (x === 'text') e.textContent = v;
+    else if (x.startsWith('on')) e.addEventListener(x.slice(2), v);
+    else if (v !== false && v !== null && v !== undefined) e.setAttribute(x, v === true ? '' : v);
+  }
+  for (const c of k.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c));
+  return e;
+};
+const fresh = () => ({play: null, target: '', stash: '', accuse_seat: '', accuse_fate: '', strike: '', say: '', wh: {}, call: '', pledge: '', fate: ''});
+let state = fresh();
+let busy = false, msg = '';
+const FATES_ALL = {LIGHT: ['saint', 'peacemaker', 'redeemed', 'bulwark', 'late_bloomer', 'survivor'], SHADOW: ['fallen', 'heretic', 'wolf', 'glutton', 'backstabber', 'inquisitor']};
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : undefined);
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+const others = () => VIEW.seats.filter(x => x.s !== VIEW.seat);
+const seatOpts = (sel, blank) => [el('option', {value: '', text: blank}), ...others().map(x => el('option', {value: String(x.s), text: 'S' + x.s, selected: String(x.s) === sel}))];
+
+function seatCard(x) {
+  const me = x.s === VIEW.seat;
+  const tk = x.token === 'HALOED' ? 'tok h' : x.token === 'HOT' ? 'tok x' : 'tok';
+  return el('div', {class: 'seat' + (me ? ' me' : '')}, el('b', {text: 'S' + x.s + (me ? ' (you)' : '')}),
+    el('span', {class: 'band', text: x.band}), el('span', {class: tk, text: x.token === 'none' ? 'no streak token' : x.token}),
+    el('span', {class: 'fam', text: x.fam || 'no public family'}));
+}
+function reportLi(t) {
+  const bad = /lost|cost you|blocked|WRONG|BROKE|BROKEN|-\d|Called you: YES|VOID|No Betrayal|No SETTLE/i.test(t);
+  const good = /gave you|KEPT|SETTLE with|CORRECT|SMITE \+|BETRAYAL \+|BETRAYAL of|Wounded \+|TITHE applied: you gain|bounty|was right|you gained|FAVOUR WARD/i.test(t);
+  return el('li', {class: good && !/lost|cost you|BROKEN|blocked/i.test(t) ? 'good' : bad ? 'bad' : 'note', text: t});
+}
+function boardPanel() {
+  const b = VIEW.board;
+  const fav = f => 'S' + f.seat + ' (r' + f.round + (f.expires ? ', expires after r' + f.expires : ', expired, counts in R7') + ')';
+  return el('div', {class: 'panel'}, el('h2', {text: 'Your board'}),
+    el('div', {class: 'kv'},
+      el('div', {}, el('span', {text: 'Favours you gave: '}), el('b', {text: b.given.map(fav).join(', ') || 'none'})),
+      el('div', {}, el('span', {text: 'Favours you hold: '}), el('b', {text: b.received.map(f => fav(f) + (f.betray ? '' : ' [Betrayed]')).join(', ') || 'none'})),
+      el('div', {}, el('span', {text: 'Betrayals: '}), el('b', {text: b.betrayals + '/2'})),
+      el('div', {}, el('span', {text: 'Settles: '}), el('b', {text: b.settles + '/2'})),
+      el('div', {}, el('span', {text: 'Paying Pledges kept: '}), el('b', {text: b.pledges_kept + '/3'})),
+      el('div', {}, el('span', {text: 'Ward: '}), el('b', {text: b.ward ? 'yes' : 'no'})),
+      el('div', {}, el('span', {text: 'Your streak: '}), el('b', {text: (b.streak.kind || 'none') + ' x' + b.streak.length})),
+      el('div', {}, el('span', {text: 'Accusation: '}), el('b', {text: b.accusation}))),
+    el('div', {class: 'row'}, VIEW.fates.length ? VIEW.fates.map(f => el('span', {class: 'chip g', title: f.desc, text: f.name + ' +' + f.reward + ' ' + f.family})) : el('span', {class: 'hint', text: 'No Fates yet.'})),
+    VIEW.fates.length ? el('ul', {class: 'clean'}, VIEW.fates.map(f => el('li', {class: 'hint', text: f.name + ': ' + f.desc}))) : null,
+    VIEW.tallies ? el('details', {}, el('summary', {text: 'Your tallies'}), el('div', {class: 'pre', text: VIEW.tallies})) : null);
+}
+function rulesDrawer() {
+  const d = el('details', {class: 'panel', ontoggle: async e => {
+    if (e.target.open && !RULES && !OFFLINE) { try { RULES = await api('/api/rules'); build(); $('#rules')?.setAttribute('open', ''); } catch (x) {} }
+  }, id: 'rules'}, el('summary', {text: 'Rules and card list'}));
+  if (RULES) {
+    d.append(el('div', {class: 'pre', text: RULES.brief}));
+  } else d.append(el('div', {class: 'hint', text: OFFLINE ? 'Rules are available when served by the engine.' : 'Loading...'}));
+  return d;
+}
+function lobby() {
+  const a = $('#app'); a.textContent = '';
+  const seat = el('select', {id: 'lseat'}, [0, 1, 2, 3, 4, 5].map(i => el('option', {value: i, text: 'Seat ' + i})));
+  const bots = el('select', {id: 'lbots'}, [el('option', {value: 'llm', text: 'LLM bots'}), el('option', {value: 'stub', text: 'Stub bots (random play)'})]);
+  const seed = el('input', {type: 'number', id: 'lseed', placeholder: 'random'});
+  const err = el('div', {class: 'err'});
+  a.append(el('div', {class: 'panel'}, el('h1', {text: 'Saints and Sinners'}), el('div', {class: 'sub', text: 'One human against five bot seats. Rules v14.'}),
+    el('div', {class: 'row'}, el('label', {class: 'f'}, 'Your seat', seat), el('label', {class: 'f'}, 'Opponents', bots), el('label', {class: 'f'}, 'Seed (optional)', seed),
+      el('button', {class: 'btn', type: 'button', onclick: async () => {
+        try {
+          const j = await api('/api/games', {seat: +seat.value, bots: bots.value, seed: seed.value === '' ? undefined : +seed.value});
+          location.search = '?game=' + encodeURIComponent(j.id) + '&seat=' + j.seat;
+        } catch (e) { err.textContent = e.message; }
+      }, text: 'New game'})), err));
+  api('/api/games').then(list => {
+    if (!list.length) return;
+    a.append(el('div', {class: 'panel'}, el('h2', {text: 'Resume'}), el('ul', {class: 'clean'}, list.map(g =>
+      el('li', {}, el('a', {href: '?game=' + encodeURIComponent(g.id) + '&seat=' + (g.seats[0] ?? 0), text: g.id + ' (round ' + g.round + ', ' + g.phase + ')'}))))));
+  }).catch(() => {});
+}
+function build() {
+  const a = $('#app'); a.textContent = '';
+  const th = VIEW.theme;
+  const stageTxt = VIEW.stage === 'talk' ? 'talk phase' : VIEW.stage === 'act' ? 'play phase' : 'game over';
+  a.append(el('div', {class: 'top'},
+    el('div', {}, el('h1', {text: VIEW.stage === 'over' ? 'Game over' : 'Round ' + VIEW.round + ' of ' + VIEW.rounds}),
+      el('div', {class: 'sub', text: VIEW.game + ' - you are S' + VIEW.seat + ' - ' + stageTxt}),
+      el('div', {class: 'themebox'}, el('span', {class: 'chip v', text: 'Theme virtue: ' + th.virtue}), el('span', {class: 'chip s', text: 'Theme sin: ' + th.sin}))),
+    el('div', {}, el('div', {class: 'sub', text: 'Your VP'}), el('div', {class: 'vp', text: String(VIEW.vp)}))));
+  VIEW.notices.forEach(n => a.append(el('div', {class: 'notice', text: n})));
+  a.append(el('div', {class: 'seats'}, VIEW.seats.map(seatCard)));
+  if (VIEW.final) a.append(el('div', {class: 'hint', text: 'Final round: every exact VP is revealed above. No streak bonus is paid. Strikes resolve starting from S' + VIEW.strike_first + '.'}));
+  a.append(boardPanel());
+  if (VIEW.report.length) a.append(el('div', {class: 'panel'}, el('h2', {text: 'Your private report (round ' + (VIEW.report_round || '') + ')'}), el('ul', {class: 'clean rep'}, VIEW.report.map(reportLi))));
+  if (VIEW.public.length) a.append(el('div', {class: 'panel'}, el('h2', {text: 'Public result'}), el('ul', {class: 'clean'}, VIEW.public.map(t => el('li', {class: 'hint', text: t})))));
+  if (VIEW.news) a.append(el('div', {class: 'notice', text: VIEW.news}));
+  if (VIEW.feed.length || VIEW.whispers.length || VIEW.pledges.length) {
+    a.append(el('div', {class: 'panel'}, el('h2', {text: 'Table talk'}),
+      el('ul', {class: 'clean talk'}, VIEW.feed.map(m => el('li', {}, el('span', {class: 'who' + (m.s === VIEW.seat ? ' you' : ''), text: 'S' + m.s}), el('span', {text: m.t})))),
+      VIEW.pledges.length ? el('ul', {class: 'clean'}, VIEW.pledges.map(p => el('li', {class: 'hint', text: 'S' + p.s + ' publicly pledges a targeted virtue to S' + p.to}))) : null,
+      VIEW.whispers.length ? el('ul', {class: 'clean'}, VIEW.whispers.map(m => el('li', {class: 'whisper'}, el('b', {text: 'Whisper from S' + m.s + ': '}), m.t))) : null));
+  }
+  if (VIEW.stage === 'talk') a.append(VIEW.submitted ? waitingPanel() : talkForm());
+  else if (VIEW.stage === 'act') a.append(VIEW.submitted ? waitingPanel() : actForm());
+  else a.append(summaryPanel());
+  a.append(rulesDrawer());
+  if (msg) a.append(el('div', {class: 'err', text: msg}));
+}
+function waitingPanel() {
+  return el('div', {class: 'panel'}, el('h2', {text: 'Submitted'}), el('div', {text: 'Waiting for the other seats (' + VIEW.waiting_on + ' still to answer)...'}));
+}
+function summaryPanel() {
+  const S = VIEW.summary;
+  const p = el('div', {class: 'panel'}, el('h2', {text: 'Final result'}));
+  p.append(el('div', {class: 'win', text: 'Winner: S' + S.winner + (S.winner === VIEW.seat ? ' (you)' : '')}));
+  p.append(el('div', {class: 'tablewrap'}, el('table', {}, el('tr', {}, ['Seat', 'Base VP', 'Fate pts', 'Final', 'Fates held', 'Met', 'Stripped'].map(h => el('th', {text: h}))),
+    S.seats.map(r => el('tr', {}, el('td', {text: 'S' + r.seat + (r.seat === VIEW.seat ? ' (you)' : '')}), el('td', {text: r.base}), el('td', {text: r.bonus}), el('td', {text: r.final}),
+      el('td', {text: r.held.join(', ') || '-'}), el('td', {text: r.hits.join(', ') || '-'}), el('td', {text: r.removed.join(', ') || '-'}))))));
+  p.append(el('h2', {text: 'Round log'}));
+  S.rounds.forEach(r => p.append(el('details', {}, el('summary', {text: 'Round ' + r.round + ' - ' + r.theme}),
+    el('div', {class: 'tablewrap'}, el('table', {}, el('tr', {}, ['Seat', 'Played', 'Target', 'VP after'].map(h => el('th', {text: h}))),
+      r.plays.map(x => el('tr', {}, el('td', {text: 'S' + x.seat}), el('td', {text: x.card + ' (' + x.kind + ')'}), el('td', {text: x.target == null ? '-' : 'S' + x.target}), el('td', {text: r.scores[x.seat]}))))),
+    el('div', {class: 'hint', text: r.public.join(' ')}))));
+  p.append(el('button', {class: 'btn ghost', type: 'button', onclick: () => { location.search = ''; }, text: 'New game'}));
+  return p;
+}
+function offline(obj, note) {
+  const j = JSON.stringify(obj);
+  const box = el('div', {class: 'out', text: j}), m = el('span', {class: 'hint'});
+  return el('div', {class: 'panel'}, el('h2', {text: 'Your reply'}), box, el('div', {class: 'row'}, el('button', {class: 'btn', type: 'button', text: 'Copy reply', onclick: async () => {
+    try { await navigator.clipboard.writeText(j); m.textContent = 'Copied.'; } catch (e) { m.textContent = 'Select and copy the text above.'; }
+  }}), m), note ? el('div', {class: 'hint', text: note}) : null);
+}
+async function send(kind, body) {
+  if (OFFLINE) { $('#reply').textContent = ''; $('#reply').append(offline(body)); return; }
+  busy = true; msg = ''; refreshReply();
+  try {
+    const j = await api('/api/games/' + encodeURIComponent(GAME) + '/' + kind, Object.assign({seat: VIEW.seat}, body));
+    if (j.fixes && j.fixes.length) msg = 'Your choice was altered: ' + j.fixes.join('; ');
+    state = fresh();
+  } catch (e) { msg = e.message; }
+  busy = false; lastKey = ''; poll();
+}
+function talkForm() {
+  const wrap = el('div', {class: 'panel'}, el('h2', {text: VIEW.round === 1 ? 'Round 1 talk' : 'Talk before round ' + VIEW.round}));
+  const say = el('textarea', {id: 'say', rows: 3, maxlength: 500, placeholder: 'Public message to the table (max 500 characters)'});
+  say.value = state.say; say.addEventListener('input', () => { state.say = say.value; refreshReply(); });
+  wrap.append(el('label', {class: 'f'}, 'Say (public)', say));
+  wrap.append(el('div', {class: 'row'}, others().map(x => {
+    const i = el('input', {type: 'text', id: 'wh' + x.s, placeholder: 'optional', maxlength: 500});
+    i.value = state.wh[x.s] || ''; i.addEventListener('input', () => { state.wh[x.s] = i.value; refreshReply(); });
+    return el('label', {class: 'f'}, 'Whisper to S' + x.s, i);
+  })));
+  const row = el('div', {class: 'row'});
+  if (VIEW.can_call) { const s = el('select', {id: 'call'}, seatOpts(state.call, 'No Call')); s.addEventListener('change', () => { state.call = s.value; refreshReply(); }); row.append(el('label', {class: 'f'}, 'Call a player (stake 1 VP)', s)); }
+  const p = el('select', {id: 'pledge'}, seatOpts(state.pledge, 'No Pledge')); p.addEventListener('change', () => { state.pledge = p.value; refreshReply(); });
+  row.append(el('label', {class: 'f'}, 'Pledge a targeted virtue to', p));
+  if (VIEW.offer.length) {
+    const f = el('select', {id: 'fate'}, [el('option', {value: '', text: 'No Fate'}), ...VIEW.offer.map(o => el('option', {value: o.name, text: o.name + ' (+' + o.reward + ', ' + o.family + ')', selected: state.fate === o.name}))]);
+    f.addEventListener('change', () => { state.fate = f.value; refreshReply(); }); row.append(el('label', {class: 'f'}, VIEW.offer_label, f));
+  }
+  wrap.append(row);
+  if (VIEW.offer.length) wrap.append(el('ul', {class: 'clean'}, VIEW.offer.map(o => el('li', {class: 'hint', text: o.name + ' (+' + o.reward + ', ' + o.family + '): ' + o.desc}))));
+  wrap.append(el('div', {id: 'reply'})); setTimeout(refreshReply, 0); return wrap;
+}
+function actForm() {
+  const wrap = el('div', {class: 'panel'}, el('h2', {text: 'Play a card'}));
+  const cards = [...VIEW.hand.map(c => ({...c, src: 'hand'}))]; if (VIEW.stash) cards.push({...VIEW.stash, src: 'stash'});
+  wrap.append(el('div', {class: 'hand'}, cards.map(c => el('button', {type: 'button', title: c.name + ': ' + c.text, class: 'card ' + (c.kind === 'virtue' ? 'v' : 's'), 'aria-pressed': String(state.play === c.id),
+    onclick: () => { state.play = c.id; if (!c.target) state.target = ''; if (state.stash === c.id) state.stash = ''; build(); }},
+    el('span', {class: 'k', text: c.kind + (c.src === 'stash' ? ' - from stash (bonus +' + c.bonus + ')' : '')}), el('span', {class: 'n', text: c.name}), el('span', {class: 't', text: c.text}),
+    c.theme ? el('span', {class: 'th', text: 'IN THEME +2'}) : null, c.target ? el('span', {class: 'hint', text: 'needs a target'}) : null))));
+  const cur = cards.find(c => c.id === state.play); const row = el('div', {class: 'row'});
+  if (cur && cur.target) { const t = el('select', {id: 'target'}, seatOpts(state.target, 'Choose target')); t.addEventListener('change', () => { state.target = t.value; refreshReply(); }); row.append(el('label', {class: 'f'}, 'Target', t)); }
+  const dealt = VIEW.hand.filter(c => c.id !== state.play);
+  const st = el('select', {id: 'stash'}, [el('option', {value: '', text: VIEW.stash ? 'Keep current stash' : 'No stash'}), ...dealt.map(c => el('option', {value: c.id, text: 'Stash ' + c.name, selected: state.stash === c.id}))]);
+  st.addEventListener('change', () => { state.stash = st.value; refreshReply(); }); row.append(el('label', {class: 'f'}, 'Move a dealt card to your stash', st));
+  if (VIEW.round >= 4 && !VIEW.accused) {
+    const as = el('select', {id: 'accs'}, seatOpts(state.accuse_seat, 'No Accusation')); as.addEventListener('change', () => { state.accuse_seat = as.value; state.accuse_fate = ''; build(); });
+    row.append(el('label', {class: 'f'}, 'Accuse (once per game)', as));
+    if (state.accuse_seat !== '') {
+      const fam = VIEW.families[state.accuse_seat] || [];
+      const names = fam.flatMap(f => FATES_ALL[f] || []);
+      const af = el('select', {id: 'accf'}, [el('option', {value: '', text: names.length ? 'Fate to name' : 'They hold no family'}), ...names.map(f => el('option', {value: f, text: f, selected: state.accuse_fate === f}))]);
+      af.addEventListener('change', () => { state.accuse_fate = af.value; refreshReply(); }); row.append(el('label', {class: 'f'}, 'Fate', af));
+    }
+  }
+  if (VIEW.final) { const fs = el('select', {id: 'strike'}, seatOpts(state.strike, 'No Final Strike (costs 2 VP)')); fs.addEventListener('change', () => { state.strike = fs.value; refreshReply(); }); row.append(el('label', {class: 'f'}, 'Final Strike', fs)); }
+  wrap.append(row);
+  wrap.append(el('div', {id: 'reply'})); setTimeout(refreshReply, 0); return wrap;
+}
+function refreshReply() {
+  const box = $('#reply'); if (!box) return; box.textContent = '';
+  const submit = (kind, o) => OFFLINE ? box.append(offline(o)) : box.append(el('div', {class: 'row'}, el('button', {class: 'btn', type: 'button', disabled: busy, text: busy ? 'Sending...' : 'Submit', onclick: () => send(kind, o)})));
+  if (VIEW.stage === 'talk') {
+    const wh = {}; for (const [k, v] of Object.entries(state.wh)) if (v && v.trim()) wh[k] = v.trim();
+    const o = {say: state.say.trim(), whisper: wh, call: state.call === '' ? null : +state.call, pledge: state.pledge === '' ? null : +state.pledge};
+    if (VIEW.offer.length) o.fate = state.fate || null;
+    if (!o.say) { box.append(el('div', {class: 'err', text: 'Write a public line first.'})); return; }
+    submit('talk', o);
+  } else {
+    if (!state.play) { box.append(el('div', {class: 'hint', text: 'Choose a card.'})); return; }
+    const cur = [...VIEW.hand, ...(VIEW.stash ? [VIEW.stash] : [])].find(c => c.id === state.play);
+    if (cur.target && state.target === '') { box.append(el('div', {class: 'err', text: 'This card needs a target.'})); return; }
+    if (state.accuse_seat !== '' && !state.accuse_fate) { box.append(el('div', {class: 'err', text: 'Name the Fate you are accusing them of, or clear the Accusation.'})); return; }
+    const o = {play: state.play, target: cur.target ? +state.target : null, stash: state.stash || null};
+    if (state.accuse_seat !== '' && state.accuse_fate) o.accuse = {seat: +state.accuse_seat, fate: state.accuse_fate};
+    if (VIEW.final && state.strike !== '') o.final_strike = +state.strike;
+    submit('act', o);
+  }
+}
+async function poll() {
+  if (busy) return;
+  try {
+    VIEW = await api('/api/games/' + encodeURIComponent(GAME) + '/view?seat=' + SEAT);
+  } catch (e) { msg = e.message; $('#app').textContent = ''; $('#app').append(el('div', {class: 'panel'}, el('div', {class: 'err', text: msg}), el('a', {href: '?', text: 'Back to the lobby'}))); return; }
+  const key = JSON.stringify([VIEW.round, VIEW.stage, VIEW.submitted, VIEW.vp, VIEW.report_round, VIEW.waiting_on, !!RULES, msg]);
+  if (key !== lastKey) { lastKey = key; build(); }
+}
+if (OFFLINE) { VIEW = DEMO; build(); }
+else if (!GAME) lobby();
+else { poll(); setInterval(poll, 1500); }
+</script>
+</body>
+</html>

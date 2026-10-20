@@ -1,0 +1,158 @@
+<title>Saints and Sinners Table</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column "player console": status strip, table of six seats, your board, feed, compose. */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#16202b; --muted:#5b6876; --line:#d5dce3;
+  --virtue:#0f766e; --virtue-bg:#d9f0ec; --sin:#b4281e; --sin-bg:#f8dcd8; --gold:#a16207; --gold-bg:#f6e8c4;
+  --accent:#2540a8; --accent-ink:#ffffff; --focus:#2540a8;
+  --display:'Archivo',system-ui,sans-serif; --body:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f151c; --panel:#18212b; --ink:#e7edf3; --muted:#9aa8b6; --line:#2b3745;
+  --virtue:#4fd1c1; --virtue-bg:#12322f; --sin:#ff8a7d; --sin-bg:#3b1a17; --gold:#e9b949; --gold-bg:#37290d;
+  --accent:#8aa4ff; --accent-ink:#0f151c; --focus:#8aa4ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151c; --panel:#18212b; --ink:#e7edf3; --muted:#9aa8b6; --line:#2b3745;
+  --virtue:#4fd1c1; --virtue-bg:#12322f; --sin:#ff8a7d; --sin-bg:#3b1a17; --gold:#e9b949; --gold-bg:#37290d;
+  --accent:#8aa4ff; --accent-ink:#0f151c; --focus:#8aa4ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-block:18px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+button,select,textarea,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.top h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px}
+.vp{font:700 44px/1 var(--display);font-variant-numeric:tabular-nums}
+.themebox{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;font:500 12px var(--mono);border:1px solid var(--line);background:var(--panel)}
+.chip.v{background:var(--virtue-bg);color:var(--virtue);border-color:transparent}
+.chip.s{background:var(--sin-bg);color:var(--sin);border-color:transparent}
+.chip.g{background:var(--gold-bg);color:var(--gold);border-color:transparent}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.seats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.seat{border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--panel);display:flex;flex-direction:column;gap:3px;min-width:0}
+.seat.me{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.seat b{font:700 14px var(--display)}
+.seat .band{font:500 18px var(--mono);font-variant-numeric:tabular-nums}
+.seat .fam{font:400 11px var(--mono);color:var(--muted)}
+.tok{font:500 11px var(--mono);letter-spacing:.06em}
+.tok.h{color:var(--virtue)} .tok.x{color:var(--sin)}
+ul.clean{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.rep li{padding-left:10px;border-left:3px solid var(--line)}
+.rep li.good{border-color:var(--virtue)} .rep li.bad{border-color:var(--sin)} .rep li.note{border-color:var(--gold)}
+.talk li{display:flex;gap:10px;align-items:baseline}
+.talk .who{font:700 13px var(--display);flex:0 0 34px}
+.talk .who.you{color:var(--accent)}
+.whisper{background:var(--gold-bg);border-radius:6px;padding:6px 10px}
+.pre{white-space:pre-wrap;overflow-wrap:anywhere;font:400 13px/1.5 var(--mono);color:var(--muted)}
+.hand{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.card{text-align:left;border:2px solid var(--line);background:var(--panel);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;cursor:pointer;min-width:0}
+.card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.card.v .k{color:var(--virtue)} .card.s .k{color:var(--sin)}
+.card .k{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.card .n{font:800 18px var(--display)}
+.card .t{font-size:13px;color:var(--muted)}
+.card .th{font:600 11px var(--mono);color:var(--gold)}
+.row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+select,textarea,input[type=text]{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;color:var(--ink);min-width:0}
+textarea{width:100%;resize:vertical}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 16px;font:700 14px var(--display);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.out{background:var(--bg);border:1px dashed var(--line);border-radius:6px;padding:10px;font:400 12.5px/1.5 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}
+.hint{font-size:12.5px;color:var(--muted)}
+details summary{cursor:pointer;font:700 13px var(--display)}
+.err{color:var(--sin);font-size:13px}
+</style>
+<div class="wrap" id="app"></div>
+<script>
+/*VIEW_START*/
+const VIEW = {"mode":"demo","game":"DEMO","seat":0,"round":3,"rounds":7,"theme":{"virtue":"Charity","sin":"Greed","label":"Greed/Charity"},"vp":25,"seats":[{"s":0,"band":"25","token":"HALOED","fam":"LIGHT"},{"s":1,"band":"15-19","token":"HOT","fam":"SHADOW"},{"s":2,"band":"20-24","token":"HALOED","fam":"LIGHT/SHADOW"},{"s":3,"band":"15-19","token":"none","fam":"SHADOW"},{"s":4,"band":"20-24","token":"HOT","fam":"SHADOW"},{"s":5,"band":"20-24","token":"HOT","fam":"LIGHT/SHADOW"}],"board":"Favours you gave: S1 (r1). Received: S4 (r1). Ward: yes. Streak: virtue x2. Accusation: from round 4.","report":["You played Guidance on S2: base +2; theme +2","Net VP change this round: +12"],"fates":["saint: virtue in 6+ rounds and finish top 3 (+6)"],"feed":[{"s":1,"t":"Example public line."}],"whispers":[{"s":2,"t":"Example whisper to you."}],"hand":[{"id":"c09","name":"Alms","kind":"virtue","text":"you +2, target +2","target":true,"theme":true}],"stash":null,"offer":[],"can_call":true,"stage":"talk","final":false,"strike_first":null,"families":{"1":["SHADOW"]}};
+/*VIEW_END*/
+const $=(s,r=document)=>r.querySelector(s);
+const el=(t,a={},...k)=>{const e=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==='class')e.className=v;else if(x==='text')e.textContent=v;else if(x.startsWith('on'))e.addEventListener(x.slice(2),v);else if(v!==false&&v!==null)e.setAttribute(x,v===true?'':v)}for(const c of k.flat())if(c!=null)e.append(c.nodeType?c:document.createTextNode(c));return e};
+const state={play:null,target:'',stash:'',accuse_seat:'',accuse_fate:'',strike:'',say:'',wh:{},call:'',pledge:'',fate:''};
+const others=()=>VIEW.seats.filter(x=>x.s!==VIEW.seat);
+const seatOpts=(sel,blank)=>[el('option',{value:'',text:blank}),...others().map(x=>el('option',{value:String(x.s),text:'S'+x.s,selected:String(x.s)===sel}))];
+const FATES=['saint','peacemaker','redeemed','fallen','heretic','wolf','glutton','backstabber','inquisitor','bulwark','late_bloomer','survivor'];
+function seatCard(x){const me=x.s===VIEW.seat;const tk=x.token==='HALOED'?'tok h':x.token==='HOT'?'tok x':'tok';
+ return el('div',{class:'seat'+(me?' me':'')},el('b',{text:'S'+x.s+(me?' (you)':'')}),el('span',{class:'band',text:me?String(VIEW.vp):x.band}),el('span',{class:tk,text:x.token==='none'?'no streak token':x.token}),el('span',{class:'fam',text:x.fam||'no public family'}))}
+function reportLi(t){const g=/\+\d|gave you|KEPT|SETTLE|CORRECT|Smite|SMITE|BETRAYAL \+/i.test(t)&&!/lost|cost you|blocked|WRONG|BROKEN/i.test(t);const b=/lost|cost you|WRONG|BROKEN|-\d/i.test(t);return el('li',{class:g?'good':b?'bad':'note',text:t})}
+function build(){
+ const a=$('#app');a.textContent='';
+ const th=VIEW.theme;
+ a.append(el('div',{class:'top'},
+  el('div',{},el('h1',{text:'Round '+VIEW.round+' of '+VIEW.rounds}),el('div',{class:'sub',text:VIEW.game+' · you are S'+VIEW.seat+' · '+(VIEW.stage==='talk'?'talk phase':VIEW.stage==='act'?'play phase':'game over')}),
+   el('div',{class:'themebox'},el('span',{class:'chip v',text:'Theme virtue: '+th.virtue}),el('span',{class:'chip s',text:'Theme sin: '+th.sin}))),
+  el('div',{},el('div',{class:'sub',text:'Your VP'}),el('div',{class:'vp',text:String(VIEW.vp)}))));
+ a.append(el('div',{class:'seats'},VIEW.seats.map(seatCard)));
+ a.append(el('div',{class:'panel'},el('h2',{text:'Your board'}),el('div',{class:'pre',text:VIEW.board}),
+   el('div',{class:'row'},VIEW.fates.map(f=>el('span',{class:'chip g',text:f})))));
+ if(VIEW.report.length)a.append(el('div',{class:'panel'},el('h2',{text:'Your private report'}),el('ul',{class:'clean rep'},VIEW.report.map(reportLi))));
+ if(VIEW.feed.length||VIEW.whispers.length){
+  a.append(el('div',{class:'panel'},el('h2',{text:'Table talk'}),
+   el('ul',{class:'clean talk'},VIEW.feed.map(m=>el('li',{},el('span',{class:'who',text:'S'+m.s}),el('span',{text:m.t})))),
+   VIEW.whispers.length?el('ul',{class:'clean'},VIEW.whispers.map(m=>el('li',{class:'whisper'},el('b',{text:'Whisper from S'+m.s+': '}),m.t))):null))}
+ if(VIEW.stage==='talk')a.append(talkForm());
+ else if(VIEW.stage==='act')a.append(actForm());
+ else a.append(el('div',{class:'panel'},el('h2',{text:'Game over'}),el('div',{text:VIEW.summary||'See the final result in the chat.'})));
+}
+function out(obj,note){const j=JSON.stringify(obj);const box=el('div',{class:'out',id:'outbox',text:j});
+ const msg=el('span',{class:'hint',text:''});
+ const b=el('button',{class:'btn',type:'button',text:'Copy reply',onclick:async()=>{try{await navigator.clipboard.writeText(j);msg.textContent='Copied. Paste it into the chat with Claude.'}catch(e){const r=document.createRange();r.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(r);msg.textContent='Select and copy the text above.'}}});
+ return el('div',{class:'panel'},el('h2',{text:'Your reply'}),box,el('div',{class:'row'},b,msg),note?el('div',{class:'hint',text:note}):null)}
+function talkForm(){
+ const wrap=el('div',{class:'panel'},el('h2',{text:VIEW.round===1?'Round 1 talk':'Talk before round '+(VIEW.round+1)}));
+ const say=el('textarea',{id:'say',rows:3,maxlength:500,placeholder:'Public message to the table (max 500 characters)'});say.value=state.say;say.addEventListener('input',()=>{state.say=say.value;refresh()});
+ wrap.append(el('label',{class:'f'},'Say (public)',say));
+ const whs=others().map(x=>{const i=el('input',{type:'text',id:'wh'+x.s,placeholder:'Whisper to S'+x.s+' (optional)'});i.value=state.wh[x.s]||'';i.addEventListener('input',()=>{state.wh[x.s]=i.value;refresh()});return el('label',{class:'f'},'Whisper to S'+x.s,i)});
+ wrap.append(el('div',{class:'row'},whs));
+ const row=el('div',{class:'row'});
+ if(VIEW.can_call){const s=el('select',{id:'call'},seatOpts(state.call,'No Call'));s.addEventListener('change',()=>{state.call=s.value;refresh()});row.append(el('label',{class:'f'},'Call a player',s))}
+ const p=el('select',{id:'pledge'},seatOpts(state.pledge,'No Pledge'));p.addEventListener('change',()=>{state.pledge=p.value;refresh()});row.append(el('label',{class:'f'},'Pledge a targeted virtue to',p));
+ if(VIEW.offer&&VIEW.offer.length){const f=el('select',{id:'fate'},[el('option',{value:'',text:'No Fate'}),...VIEW.offer.map(o=>el('option',{value:o.name,text:o.name+' (+'+o.reward+', '+o.family+')',selected:state.fate===o.name}))]);f.addEventListener('change',()=>{state.fate=f.value;refresh()});row.append(el('label',{class:'f'},VIEW.offer_label||'Fate offer',f))}
+ wrap.append(row);
+ if(VIEW.offer&&VIEW.offer.length)wrap.append(el('ul',{class:'clean'},VIEW.offer.map(o=>el('li',{class:'hint',text:o.name+': '+o.desc}))));
+ wrap.append(el('div',{id:'reply'}));setTimeout(refresh,0);return wrap}
+function actForm(){
+ const wrap=el('div',{class:'panel'},el('h2',{text:'Play a card'}));
+ const cards=[...VIEW.hand.map(c=>({...c,src:'hand'}))];if(VIEW.stash)cards.push({...VIEW.stash,src:'stash'});
+ const hand=el('div',{class:'hand'},cards.map(c=>{const b=el('button',{type:'button',class:'card '+(c.kind==='virtue'?'v':'s'),'aria-pressed':String(state.play===c.id),onclick:()=>{state.play=c.id;if(!c.target)state.target='';build()}},
+  el('span',{class:'k',text:c.kind+(c.src==='stash'?' · from stash':'')}),el('span',{class:'n',text:c.name}),el('span',{class:'t',text:c.text}),c.theme?el('span',{class:'th',text:'IN THEME +2'}):null,c.target?el('span',{class:'hint',text:'needs a target'}):null);return b}));
+ wrap.append(hand);
+ const cur=cards.find(c=>c.id===state.play);const row=el('div',{class:'row'});
+ if(cur&&cur.target){const t=el('select',{id:'target'},seatOpts(state.target,'Choose target'));t.addEventListener('change',()=>{state.target=t.value;refresh()});row.append(el('label',{class:'f'},'Target',t))}
+ const dealt=VIEW.hand.filter(c=>c.id!==state.play);
+ const st=el('select',{id:'stash'},[el('option',{value:'',text:'Keep current stash'}),...dealt.map(c=>el('option',{value:c.id,text:'Stash '+c.name,selected:state.stash===c.id}))]);st.addEventListener('change',()=>{state.stash=st.value;refresh()});row.append(el('label',{class:'f'},'Move a dealt card to your stash',st));
+ if(VIEW.round>=4&&!VIEW.accused){const as=el('select',{id:'accs'},seatOpts(state.accuse_seat,'No Accusation'));as.addEventListener('change',()=>{state.accuse_seat=as.value;refresh()});
+  const af=el('select',{id:'accf'},[el('option',{value:'',text:'Fate to name'}),...FATES.map(f=>el('option',{value:f,text:f,selected:state.accuse_fate===f}))]);af.addEventListener('change',()=>{state.accuse_fate=af.value;refresh()});
+  row.append(el('label',{class:'f'},'Accuse (once per game)',as),el('label',{class:'f'},'Fate',af))}
+ if(VIEW.final){const fs=el('select',{id:'strike'},seatOpts(state.strike,'No Final Strike (costs 2 VP)'));fs.addEventListener('change',()=>{state.strike=fs.value;refresh()});row.append(el('label',{class:'f'},'Final Strike',fs))}
+ wrap.append(row);
+ if(VIEW.final&&VIEW.strike_first!==null)wrap.append(el('div',{class:'hint',text:'Strikes resolve starting from S'+VIEW.strike_first+'.'}));
+ wrap.append(el('div',{id:'reply'}));setTimeout(refresh,0);return wrap}
+function refresh(){
+ const box=$('#reply');if(!box)return;box.textContent='';
+ if(VIEW.stage==='talk'){
+  const wh={};for(const[k,v]of Object.entries(state.wh))if(v&&v.trim())wh[k]=v.trim();
+  const o={say:state.say.trim(),whisper:wh,call:state.call===''?null:+state.call,pledge:state.pledge===''?null:+state.pledge};
+  if(VIEW.offer&&VIEW.offer.length)o.fate=state.fate||null;
+  if(!o.say){box.append(el('div',{class:'err',text:'Write a public line first.'}));return}
+  box.append(out(o,'Paste this into the chat and I will run the other five players and the round.'));
+ }else{
+  if(!state.play){box.append(el('div',{class:'hint',text:'Choose a card.'}));return}
+  const cur=[...VIEW.hand,...(VIEW.stash?[VIEW.stash]:[])].find(c=>c.id===state.play);
+  if(cur.target&&state.target===''){box.append(el('div',{class:'err',text:'This card needs a target.'}));return}
+  if(state.accuse_seat!==''&&!state.accuse_fate){box.append(el('div',{class:'err',text:'Name the Fate you are accusing them of.'}));return}
+  const o={play:state.play,target:cur.target?+state.target:null,stash:state.stash||null};
+  if(state.accuse_seat!==''&&state.accuse_fate)o.accuse={seat:+state.accuse_seat,fate:state.accuse_fate};
+  if(VIEW.final&&state.strike!=='')o.final_strike=+state.strike;
+  box.append(out(o,'Paste this into the chat and I will run the round.'));
+ }}
+build();
+</script>
